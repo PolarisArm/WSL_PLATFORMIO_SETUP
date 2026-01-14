@@ -78,6 +78,7 @@
    > ```
 
    ### 🔹 Detach from WSL (release back to Windows)
+   In Ubuntu/Debian (including WSL2), serial devices like /dev/ttyUSB0 or /dev/ttyACM0 are owned by the group dialout. By default, user isn’t in that group.
    ```powershell
    usbipd detach --wsl --busid 1-12
    ```
@@ -88,41 +89,64 @@
    usbipd unbind --busid 1-12
    ```
    State returns to: `Not shared`
+
+   ## After all of this I couldn't upload or open serial monitor. But there is a fix:
+   ```
+      sudo usermod -aG dialout $USER
+   ```
+   Then log out and back into WSL for the group change to take effect: <br>
+   ```
+   exit
+   ```
+   or <br>
+   ```
+      wsl --shutdown
+   ```
+
+   After relogging we should type ``` groups ``` and see dialout there. <br>
+   Then check device permissions:
+   ```
+      ls -l /dev/ttyUSB0
+   ```
+   And see this:
+   ```
+      crw-rw---- 1 root dialout 188, 0 Jun 10 10:00 /dev/ttyUSB0
+   ```
     
-   ## Problem PlatformIO Unable to Locate Project (WSL2 Path Issue)
-    
-   After creating the project, PlatformIO **failed to recognize it**, even though the folder was created.
-    
-   ### 🔍 Root Cause
-    - PlatformIO runs inside **WSL2 (Linux)** but sometimes uses **Windows-style backslashes (`\`)** in internal paths.
-    - This creates malformed directory names like:  
-    `~/PlatformIO/Projects/Projects\test`  
-   which Linux cannot interpret correctly.
-    
-   ### 🛠️ Fix: Patch PlatformIO Home (Temporary Workaround)
-    
-    1. In WSL2, navigate to:
-     ```bash
-     cd ~/.platformio/packages/contrib-piohome/
-     ```
-    2. Find the minified JavaScript file (e.g., `main.XXXXX.min.js`).
-    3. Open it in a text editor (e.g., `nano` or `code`):
-     ```bash
-     nano main.*.min.js
-     ```
-    4. Press **Ctrl+F** and search for:
-     ```
-     "\\":"/"
-     ```
-    5. Replace it with:
-     ```
-     "/":"/"
-     ```
-    6. Save and close the file.
-    
-   > 💡 This forces PlatformIO to use **forward slashes** consistently in Linux paths.
-    
-    7. **Reload VS Code** (Ctrl+Shift+P → “Developer: Reload Window”).
-    8. Recreate your project — it should now be recognized properly.
-    
-    
+## Problem PlatformIO Unable to Locate Project (WSL2 Path Issue)
+ 
+After creating the project, PlatformIO **failed to recognize it**, even though the folder was created.
+ 
+### 🔍 Root Cause
+ - PlatformIO runs inside **WSL2 (Linux)** but sometimes uses **Windows-style backslashes (`\`)** in internal paths.
+ - This creates malformed directory names like:  
+ `~/PlatformIO/Projects/Projects\test`  
+which Linux cannot interpret correctly.
+ 
+### 🛠️ Fix: Patch PlatformIO Home (Temporary Workaround)
+ 
+ 1. In WSL2, navigate to:
+  ```bash
+  cd ~/.platformio/packages/contrib-piohome/
+  ```
+ 2. Find the minified JavaScript file (e.g., `main.XXXXX.min.js`).
+ 3. Open it in a text editor (e.g., `nano` or `code`):
+  ```bash
+  nano main.*.min.js
+  ```
+ 4. Press **Ctrl+F** and search for:
+  ```
+  "\\":"/"
+  ```
+ 5. Replace it with:
+  ```
+  "/":"/"
+  ```
+ 6. Save and close the file.
+ 
+> 💡 This forces PlatformIO to use **forward slashes** consistently in Linux paths.
+ 
+ 7. **Reload VS Code** (Ctrl+Shift+P → “Developer: Reload Window”).
+ 8. Recreate your project — it should now be recognized properly.
+ 
+ 
