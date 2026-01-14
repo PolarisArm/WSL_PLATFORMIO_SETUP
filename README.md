@@ -56,7 +56,7 @@
    ### 🔹 Attach to WSL
    Makes the device available inside WSL2:
    ```powershell
-   usbipd wsl attach --busid 1-12
+   usbipd attach --wsl --busid 1-12
    ```
    Output:
    ```
@@ -79,7 +79,7 @@
 
    ### 🔹 Detach from WSL (release back to Windows)
    ```powershell
-   usbipd wsl detach --busid 1-12
+   usbipd detach --wsl --busid 1-12
    ```
    State becomes: `Shared`
 
